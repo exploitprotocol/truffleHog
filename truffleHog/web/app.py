@@ -1,10 +1,7 @@
-import os
-import pprint
-
-import sys
 import traceback
-
 from flask import Flask, render_template, request
+from truffleHog.util.searchOrg import get_org_repos
+from truffleHog.util.slackNotifications import send2slack
 
 app = Flask(__name__)
 
@@ -16,15 +13,6 @@ def main():
 
 @app.route('/scan', methods=['POST'])
 def scan():
-    # Since / isn't a python package, can't import from /scripts, but /scripts doesn't belong in /web so
-    # adding /scripts in the python path so we can import it
-    # TODO: fix this ugly hack
-    scripts_path = os.path.abspath(os.path.dirname(__file__) + '..')
-    sys.path.append(scripts_path)
-    pprint.pprint(scripts_path)
-    from scripts.searchOrg import get_org_repos
-    from scripts.slackNotifications import send2slack
-
     _ptoken = request.form['public_token']
     _username = request.form['username']
     _token = request.form['token']

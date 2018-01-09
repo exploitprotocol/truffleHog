@@ -3,7 +3,10 @@ import pprint
 import shutil
 from urllib.parse import quote_plus, urlparse
 from github import Github
-from slackNotifications import send2slack
+
+from truffleHog import truffleHog
+from truffleHog.truffleHog import del_rw
+from truffleHog.util.slackNotifications import send2slack
 
 
 def main():

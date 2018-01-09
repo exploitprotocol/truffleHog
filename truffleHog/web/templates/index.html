@@ -19,7 +19,7 @@
     </div>
 
     <div class="jumbotron">
-        <h1>Bucket List App</h1>
+        <h1>Trufflehog Submit Form</h1>
         <form class="form-signin" action="/scan" method="POST">
             <label for="inputName" class="sr-only">Token for account without private org access</label>
             <input type="name" name="public_token" id="inputName" class="form-control" placeholder="public github token"
@@ -38,7 +38,12 @@
                    required>
             <label for="inputName" class="sr-only">Repo Name</label>
             <input type="name" name="orgname" id="inputRepo" class="form-control" placeholder="Repo Name(optional)">
-            <input type="submit" id="scan" class="btn btn-lg btn-primary btn-block">Scan</input>
+            <label for="inputName" class="sr-only">Slack Webhook URL</label>
+            <input type="name" name="orgname" id="webhook" class="form-control" placeholder="webhook"><label for="inputName" class="sr-only">webhook url</label>
+            <label for="inputName" class="sr-only">Slack Channel</label>
+            <input type="name" name="orgname" id="channel" class="form-control" placeholder="#channel or @user"><label for="inputName" class="sr-only">slack #channel or @user</label>
+
+            <input type="submit" id="scan" class="btn btn-lg btn-primary btn-block" value="scan">Scan</input>
         </form>
     </div>
 
