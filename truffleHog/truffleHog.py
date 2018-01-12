@@ -10,7 +10,7 @@ import tempfile
 import os
 import json
 import stat
-from .regexChecks import regexes
+from regexChecks import regexes
 from git import Repo
 
 def main():
