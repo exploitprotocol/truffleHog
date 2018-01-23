@@ -9,6 +9,15 @@ from truffleHog import find_strings, del_rw
 from slackNotifications import send2slack
 
 
+def remove_diff(d):
+    if not isinstance(d, (dict, list)):
+        return d
+    if isinstance(d, list):
+        return [remove_diff(v) for v in d]
+    return {k: remove_diff(v) for k, v in d.items()
+            if k not in {'diff', 'printDiff'}}
+
+
 def main():
     parser = argparse.ArgumentParser(description='Find secrets hidden in the depths of git orgs.')
 
@@ -21,9 +30,6 @@ def main():
     parser.add_argument("--pubtoken", type=str, dest="pubtoken",
                         help="Used with --pubrepos, token of account which doesn't have access to the private org")
 
-    parser.add_argument('--pubrepos', type=bool, dest="pubrepos",
-                        help='enable searching for repos in the private org which also exist on public github')
-
     parser.add_argument('--notifySlackurl', type=str, dest="slackUrl",
                         help='send the results to slack using the following webhook')
 
@@ -31,19 +37,28 @@ def main():
                         help='send the results to slack to the target channel, to be used in conjuction '
                              'with --notifySlackurl')
 
+    parser.add_argument('-v', help="verbosity, if enabled it will print the git diffs of the findings", dest="verbose",
+                        action='store_true')
+    parser.add_argument('--pubrepos', dest="pubrepos",
+                        help='enable searching for repos in the private org which also exist on public github',
+                        action="store_true")
+
     parser.set_defaults(repo=None)
     parser.set_defaults(orgname=None)
     parser.set_defaults(privtoken=None)
     parser.set_defaults(pubtoken=None)
-    parser.set_defaults(pubrepos=False)
     parser.set_defaults(slackUrl=None)
     parser.set_defaults(slackChannel=None)
 
     args = parser.parse_args()
     output = get_org_repos(orgname=args.orgname, public_token=args.pubtoken, private_token=args.privtoken,
                            repo=args.repo)
+    if args.verbose is False:
+        output = remove_diff(json.loads(json.dumps(output, indent=4, sort_keys=True)))
+
     if args.slackUrl is not None:
-        send2slack(webhook_url=args.slackUrl, channel=args.slackChannel, msg=json.dumps(output, indent=4, sort_keys=True))
+        send2slack(webhook_url=args.slackUrl, channel=args.slackChannel,
+                   msg=json.dumps(output, indent=4, sort_keys=True))
     print(json.dumps(output, indent=4, sort_keys=True))
 
 
