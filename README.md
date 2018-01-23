@@ -3,7 +3,9 @@ support for private orgs -- done
 add web interface which allows it to be run as a service -- done
 add dockerfile so it can be run as a web service -- done
 slack support -- done
+support for private repo in private org -- done
 
+Trufflehog is a long running task, HTTP times out before it returns, so it's better to run the jobs on celery
 add unit tests for all functionality --wip
 more custom patterns -- wip
 support for gitrob filenames -- wip
