@@ -3,6 +3,8 @@ import json
 import pprint
 import shutil
 from urllib.parse import quote_plus, urlparse
+
+import time
 from github import Github
 
 from truffleHog import find_strings, del_rw
@@ -42,8 +44,17 @@ def main():
     parser.add_argument('--pubrepos', dest="pubrepos",
                         help='enable searching for repos in the private org which also exist on public github',
                         action="store_true")
+    parser.add_argument('--notifySlackCompletion',
+                        help="post on slack when execution complete, if enabled it will print a message on slack instead of the full results",
+                        dest="notify_slack",
+                        action='store_true')
+    parser.add_argument('--delay',
+                        help="in case of big orgs, sleep <delay> seconds between repos",
+                        dest="delay",
+                        type=int)
 
     parser.set_defaults(repo=None)
+    parser.set_defaults(delay=0)
     parser.set_defaults(orgname=None)
     parser.set_defaults(privtoken=None)
     parser.set_defaults(pubtoken=None)
@@ -52,17 +63,22 @@ def main():
 
     args = parser.parse_args()
     output = get_org_repos(orgname=args.orgname, public_token=args.pubtoken, private_token=args.privtoken,
-                           repo=args.repo)
+                           repo=args.repo, delay=args.delay)
     if args.verbose is False:
         output = remove_diff(json.loads(json.dumps(output, indent=4, sort_keys=True)))
 
     if args.slackUrl is not None:
-        send2slack(webhook_url=args.slackUrl, channel=args.slackChannel,
-                   msg=json.dumps(output, indent=4, sort_keys=True))
+        if args.notify_slack is True:
+            send2slack(webhook_url=args.slackUrl, channel=args.slackChannel,
+                       msg="Trufflehog execution complete")
+        else:
+            send2slack(webhook_url=args.slackUrl, channel=args.slackChannel,
+                       msg=json.dumps(output, indent=4, sort_keys=True))
+
     print(json.dumps(output, indent=4, sort_keys=True))
 
 
-def get_org_repos(orgname='', public_token=None, private_token=None, repo=None):
+def get_org_repos(orgname='', public_token=None, private_token=None, repo=None, delay=0):
     public = Github(login_or_token=public_token)
     private = Github(login_or_token=private_token)
     output = dict()
@@ -88,6 +104,8 @@ def get_org_repos(orgname='', public_token=None, private_token=None, repo=None):
         output.update({repo.html_url: (strings["entropicDiffs"], strings["found_regexes"])})
         project_path = strings["project_path"]
         shutil.rmtree(project_path, onerror=del_rw)
+        if delay > 0:
+            time.sleep(delay)
     return output
 
 
